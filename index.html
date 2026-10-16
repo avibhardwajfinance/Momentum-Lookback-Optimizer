@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Momentum Strategy | Avi Bhardwaj</title>
+<style>
+:root{--bg:#07080a;--pn:#0f1114;--pn2:#14171b;--ln:#252a31;--tx:#d8dde3;--mu:#7d8791;--am:#ff9f1a;--up:#2ecc85;--dn:#ff5a52;--bl:#4da3ff}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;color:var(--tx);background:var(--bg);font:13px/1.45 Consolas,"SF Mono",Menlo,"Liberation Mono",monospace;padding:0 0 40px}
+.num{font-variant-numeric:tabular-nums}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:#000;border-bottom:2px solid var(--am);padding:8px 14px}
+.top h1{margin:0;font-size:15px;font-weight:700;color:var(--am)}
+.top span{color:var(--mu);font-size:12px}
+.top b{color:var(--tx);font-weight:400}
+.wrapm{max-width:1100px;margin:0 auto;padding:0 10px}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));border:1px solid var(--ln);border-top:0;background:var(--pn);margin-bottom:10px}
+.strip div{padding:8px 12px;border-right:1px solid var(--ln)}
+.strip div:last-child{border-right:0}
+.strip label{display:block;color:var(--mu);font-size:11px}
+.strip b{font-size:16px;font-weight:700}
+.up{color:var(--up)}.dn{color:var(--dn)}.am{color:var(--am)}.bl{color:var(--bl)}
+nav{display:flex;gap:2px;margin:10px 0;border-bottom:1px solid var(--ln)}
+nav button{font:inherit;background:var(--pn);color:var(--mu);border:1px solid var(--ln);border-bottom:0;padding:6px 14px;cursor:pointer}
+nav button:hover{color:var(--tx)}
+nav button[aria-selected=true]{background:var(--am);color:#000;border-color:var(--am);font-weight:700}
+nav button:focus-visible,summary:focus-visible,tr[data-l]:focus-visible,.mt button:focus-visible{outline:1px solid var(--am);outline-offset:1px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g21{grid-template-columns:320px 1fr}
+@media(max-width:820px){.grid,.g21{grid-template-columns:1fr}}
+.panelbox{background:var(--pn);border:1px solid var(--ln);margin-bottom:10px}
+.ph{background:var(--pn2);border-bottom:1px solid var(--ln);padding:5px 10px;color:var(--am);font-weight:700;font-size:12px;letter-spacing:.05em}
+.ph i{color:var(--mu);font-style:normal;font-weight:400;margin-left:8px;letter-spacing:0}
+.pb{padding:10px}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{color:var(--mu);font-weight:400;font-size:11px;text-align:right;padding:5px 8px;border-bottom:1px solid var(--ln)}
+td{padding:5px 8px;text-align:right;border-bottom:1px solid #181c21}
+th:first-child,td:first-child{text-align:left}
+tbody tr:hover{background:#191d23}
+tr.best td:first-child{border-left:2px solid var(--up)}
+tr.worst td:first-child{border-left:2px solid var(--dn)}
+tr[data-l]{cursor:pointer}
+tr.sel{background:#2a1f08!important}
+tr.sel td:first-child{border-left:2px solid var(--am);color:var(--am)}
+.mt{display:flex;gap:2px;margin-bottom:8px}
+.mt button{font:inherit;font-size:12px;background:var(--bg);color:var(--mu);border:1px solid var(--ln);padding:3px 10px;cursor:pointer}
+.mt button[aria-pressed=true]{color:#000;background:var(--am);border-color:var(--am)}
+.row{display:grid;grid-template-columns:44px 1fr 92px;gap:8px;align-items:center;margin:5px 0}
+.row .tr{height:12px;background:#171a1f}
+.bar{height:100%;background:#566170}
+.bar.best{background:var(--up)}.bar.worst{background:var(--dn)}.bar.sel{background:var(--am)}
+.row em{font-style:normal;text-align:right}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1px;background:var(--ln);border:1px solid var(--ln);margin-bottom:10px}
+.sg div{background:var(--pn);padding:7px 10px}
+.sg label{display:block;color:var(--mu);font-size:11px}
+.sg b{font-size:15px}
+.note{color:var(--mu);font-size:11px;margin:6px 0 0}
+#readout{min-height:18px;font-size:12px;color:var(--mu);margin-bottom:4px}
+svg{width:100%;height:auto;display:block;cursor:crosshair}
+svg text{fill:var(--mu);font:10px Consolas,Menlo,monospace}
+details{border-top:1px solid var(--ln);padding:8px 0}
+details:first-of-type{border-top:0}
+summary{cursor:pointer;color:var(--tx);font-weight:700}
+summary:hover,details[open]>summary{color:var(--am)}
+details p,details li{margin:4px 0;color:#b6bdc6}
+details b{color:var(--tx)}
+code,pre{font-family:inherit;background:#000;border:1px solid var(--ln);color:var(--am)}
+code{padding:0 4px}pre{padding:8px;overflow-x:auto}
+.author{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:820px){.author{grid-template-columns:1fr}}
+.author a{color:var(--bl);text-decoration:none}.author a:hover{text-decoration:underline}
+.author dl{margin:0;display:grid;grid-template-columns:90px 1fr;gap:4px 10px}
+.author dt{color:var(--mu)}.author dd{margin:0;word-break:break-word}
+.author h2{margin:0 0 6px;font-size:16px;color:var(--tx)}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="top">
+<h1>Momentum Strategy</h1>
+<span><b>Avi Bhardwaj</b> &nbsp;|&nbsp; <b>30 STK</b> &nbsp;|&nbsp; <b>2006-01-03</b> to <b>2026-06-24</b> &nbsp;|&nbsp; <b>5,083</b> TRADING DAYS &nbsp;|&nbsp; NO TXN COSTS</span>
+</div>
+<div class="wrapm">
+<div class="strip" id="strip"></div>
+<nav role="tablist" id="nav">
+<button role="tab" aria-selected="true" data-p="result">1 ASSIGNMENT RESULT</button>
+<button role="tab" aria-selected="false" data-p="explore">2 LOOKBACK EXPLORER</button>
+<button role="tab" aria-selected="false" data-p="flow">3 CODE FLOW</button>
+</nav>
+
+<div id="result">
+<div class="grid">
+<section class="panelbox"><div class="ph">RESULT OF THE GIVEN ASSIGNMENT <i>all lookbacks</i></div>
+<div class="wrap"><table><thead><tr><th>LOOKBACK</th><th>SHARPE</th><th>CUM RET</th><th>CAGR</th><th>RANK</th></tr></thead><tbody id="tbody"></tbody></table></div></section>
+<section class="panelbox"><div class="ph">COMPARE <i>green best, red worst</i></div><div class="pb">
+<div class="mt" id="mt"></div><div id="bars"></div></div></section>
+</div>
+<section class="panelbox"><div class="ph">NOTES</div><div class="pb note" style="margin:0">Sharpe: risk-free 0%, 252 days a year, sample standard deviation. CAGR = (1 + cumulative return)^(252 / trading days) - 1. Rank is by Sharpe. Raw data had about 5,000 one-day spikes in prices and market caps, cleaned with a 7-day rolling median (30% rule) before the backtest.</div></section>
+</div>
+
+<div id="explore" class="hide">
+<div class="grid g21">
+<section class="panelbox"><div class="ph">LOOKBACK <i>click a row</i></div>
+<table><thead><tr><th>DAYS</th><th>SHARPE</th><th>CAGR</th></tr></thead><tbody id="wl"></tbody></table></section>
+<div>
+<div class="sg" id="sg"></div>
+<section class="panelbox"><div class="ph">METRICS VS PEERS</div><div class="wrap">
+<table><thead><tr><th>METRIC</th><th>VALUE</th><th>RANK</th><th>BEST</th><th>AVG</th><th>VS BEST</th></tr></thead><tbody id="lbtable"></tbody></table></div></section>
+<section class="panelbox"><div class="ph">PEER BARS <i>selected in amber</i></div><div class="pb" id="lbbars"></div></section>
+<section class="panelbox"><div class="ph">GROWTH OF 100 <i>constant-CAGR illustration</i></div><div class="pb">
+<div id="readout"></div><div id="growth"></div>
+<p class="note">Compounds 100 at each lookback's CAGR over 20.2 years (5,083 / 252). It ends at the true cumulative result but is not the real daily path or drawdown profile. Real curves need the daily return series from the notebook.</p></div></section>
+</div></div>
+</div>
+
+<div id="flow" class="hide">
+<section class="panelbox">
+<div class="ph">CODE FLOW <i>notebook order, run each cell once top to bottom</i></div><div class="pb">
+
+
+<details open><summary>1. Load data and fix dates</summary>
+<p>Two files are read: <code>Test_price_data.csv</code> and <code>Test_mcap_data.csv</code>, 30 stocks each.</p>
+<ul>
+<li>Price dates are written <b>DD-MM-YYYY</b>, market cap dates <b>YYYY-MM-DD</b>. Each is parsed with its own format so no day and month get swapped.</li>
+<li>Dates become the index, then a check confirms both files cover the same dates and the same 30 stocks.</li>
+<li>The date cell changes the tables it reads, so running it twice gives an error. Restart and run all instead.</li>
+</ul></details>
+
+<details><summary>2. Clean fake price spikes</summary>
+<p>The data has about 5,000 one-day spikes in both prices and market caps (example THOM.NS: 9.06, 29.12, 9.04).</p>
+<ul>
+<li>Each value is compared with the <b>rolling median of the surrounding 7 days</b>.</li>
+<li>If it is more than <b>30%</b> away from that median, it is replaced by the median.</li>
+<li>Both prices and market caps are cleaned.</li>
+<li>Why it matters: without cleaning, the 189-day lookback shows about 187 million percent cumulative return, which is not plausible.</li>
+</ul></details>
+
+<details><summary>3. Build the monthly calendar</summary>
+<ul>
+<li>For each month, the <b>rebalance date</b> is the first trading day of that month.</li>
+<li>The <b>calculation date</b> is the trading day just before it.</li>
+<li>This gives <b>246 pairs</b> of (calculation date, rebalance date).</li>
+<li>Using the previous day's data for decisions is what prevents look-ahead bias.</li>
+</ul></details>
+
+<details><summary>4. Momentum score and ranking</summary>
+<pre>momentum = price[calc_date] / price[calc_date - L trading days] - 1</pre>
+<ul>
+<li>L is counted in <b>trading days (rows)</b>, not calendar days.</li>
+<li>The 30 stocks are ranked by momentum, rank 1 being the highest.</li>
+</ul></details>
+
+<details><summary>5. Pick the 10 holdings (buffer rule)</summary>
+<ul>
+<li>Always hold exactly <b>10</b> stocks.</li>
+<li>A stock already held is <b>kept if its new rank is 12 or better</b>, otherwise sold. This reduces needless turnover.</li>
+<li>Empty spots are filled with the best-ranked stocks not already held.</li>
+<li>The first month has no holdings, so it takes the top 10.</li>
+</ul></details>
+
+<details><summary>6. Weights: market cap with a 20% cap</summary>
+<ul>
+<li>Start with weights proportional to market cap among the 10 holdings.</li>
+<li>Any stock above <b>20%</b> is cut to 20%.</li>
+<li>The excess is shared among the other stocks in proportion to market cap.</li>
+<li>This is repeated until no stock exceeds 20%, since redistribution can push another stock over.</li>
+</ul></details>
+
+<details><summary>7. Trade timing and daily returns</summary>
+<ul>
+<li>Trades happen at the <b>close of the rebalance day</b>.</li>
+<li>New weights earn returns from the <b>next day</b>, so the rebalance day itself uses the old weights.</li>
+<li>Weights are held until the next rebalance and daily portfolio return is the weighted sum of stock returns.</li>
+<li>No transaction costs, taxes or slippage.</li>
+</ul></details>
+
+<details><summary>8. Manual test, then automation</summary>
+<ul>
+<li>The logic is first tested by hand on one lookback (<b>189</b>) for two months, so each step can be checked.</li>
+<li>Then loops run it for all <b>5 lookbacks (21, 63, 126, 189, 252)</b> and all 246 months. The notebook prints <code>done 21</code> ... <code>done 252</code>.</li>
+<li>Keep the whole loop in one cell, with the last two lines indented inside <code>for lookback</code>.</li>
+</ul></details>
+
+<details><summary>9. Metrics and final answer</summary>
+<ul>
+<li><b>Sharpe</b> = mean daily return / sample std of daily return x sqrt(252), risk-free rate 0%.</li>
+<li><b>Cumulative return</b> = growth of the portfolio over all 5,083 days, minus 1.</li>
+<li><b>CAGR</b> = (1 + cumulative return)^(252 / trading days) - 1.</li>
+<li>The lookback with the highest Sharpe wins: <b>189 days</b>, Sharpe 0.992, cumulative return 8,649.0 %, CAGR 24.82 %.</li>
+<li>Results are shown as a coloured table (needs jinja2) and charts.</li>
+</ul></details>
+
+<details><summary>10. Where a reviewer could read the rules differently</summary>
+<ul>
+<li><b>Day 1:</b> whether returns start on the rebalance day or the day after (this project uses the day after).</li>
+<li><b>CAGR convention:</b> trading days over 252 versus calendar years.</li>
+<li><b>Data cleaning:</b> whether to clean spikes at all, and how. Results change a lot without it.</li>
+</ul></details>
+
+<details><summary>11. Setup and troubleshooting</summary>
+<ul>
+<li>Colab: put both CSVs in <code>My Drive/Colab Notebooks</code>, mount Drive, check the two file paths at the top.</li>
+<li>Local: <code>pip install pandas numpy matplotlib jinja2 jupyter</code>, keep the CSVs next to the notebook, set the paths to just the file names.</li>
+<li>Non-numeric error in the cleaning cell: restart the session and run all cells in order.</li>
+<li>Only <code>done 252</code> printed: the loop is split across cells or mis-indented.</li>
+<li><code>KeyError</code> in results: run setup once, then the three loop cells, then results.</li>
+</ul></details>
+</div></section>
+</div>
+
+<section class="panelbox" style="margin-top:14px"><div class="ph">ABOUT THE AUTHOR</div><div class="pb author">
+<div><h2>Avi Bhardwaj</h2>
+<dl><dt>Education</dt><dd>PGDM (Finance), Gold Medallist, IMT Hyderabad</dd>
+<dt></dt><dd>B.Voc. Software Development, University of Delhi</dd>
+<dt>Location</dt><dd>Noida, India</dd></dl></div>
+<div><dl><dt>Phone</dt><dd><a href="tel:+918923441334">+91-89234 41334</a></dd>
+<dt>Email</dt><dd><a href="mailto:avibhardwaj0324@gmail.com">avibhardwaj0324@gmail.com</a></dd>
+<dt>LinkedIn</dt><dd><a href="https://www.linkedin.com/in/avi-bhardwaj2403/" target="_blank" rel="noopener">linkedin.com/in/avi-bhardwaj2403</a></dd></dl></div>
+</div></section>
+</div>
+<script>
+const D=[
+ {l:21,s:0.826,c:3383.0,g:19.25},
+ {l:63,s:0.842,c:3688.5,g:19.74},
+ {l:126,s:0.928,c:5768.6,g:22.37},
+ {l:189,s:0.992,c:8649.0,g:24.82},
+ {l:252,s:0.912,c:5495.1,g:22.08}
+];
+const YEARS=5083/252;
+const M={
+ s:{name:"SHARPE",f:v=>v.toFixed(3)},
+ c:{name:"CUM RET",f:v=>v.toLocaleString("en-US",{minimumFractionDigits:1,maximumFractionDigits:1})+"%"},
+ g:{name:"CAGR",f:v=>v.toFixed(2)+"%"}
+};
+const $=id=>document.getElementById(id);
+const best=k=>D.reduce((a,b)=>b[k]>a[k]?b:a);
+const worst=k=>D.reduce((a,b)=>b[k]<a[k]?b:a);
+const avg=k=>D.reduce((a,b)=>a+b[k],0)/D.length;
+const rank=(d,k)=>[...D].sort((a,b)=>b[k]-a[k]).indexOf(d)+1;
+const bs=best("s"),ws=worst("s");
+const cls=d=>d===bs?"best":d===ws?"worst":"";
+
+$("nav").addEventListener("click",e=>{
+ const p=e.target.dataset.p;if(!p)return;
+ document.querySelectorAll("#nav button").forEach(b=>b.setAttribute("aria-selected",b.dataset.p===p));
+ ["result","explore","flow"].forEach(id=>$(id).classList.toggle("hide",id!==p));
+});
+
+$("strip").innerHTML=[
+ ["BEST LOOKBACK",bs.l+"D","am"],["MAX SHARPE",bs.s.toFixed(3),"up"],["CUM RETURN",M.c.f(bs.c),"up"],
+ ["CAGR",M.g.f(bs.g),"up"],["WORST LOOKBACK",ws.l+"D","dn"],["MIN SHARPE",ws.s.toFixed(3),"dn"]
+].map(x=>`<div><label>${x[0]}</label><b class="num ${x[2]}">${x[1]}</b></div>`).join("");
+
+$("tbody").innerHTML=D.map(d=>`<tr class="${cls(d)}"><td class="${d===bs?"up":d===ws?"dn":""}">${d.l}D</td><td class="num">${M.s.f(d.s)}</td><td class="num">${M.c.f(d.c)}</td><td class="num">${M.g.f(d.g)}</td><td class="num">${rank(d,"s")}</td></tr>`).join("");
+
+let cur="s";
+function bars(){
+ $("mt").innerHTML=Object.keys(M).map(k=>`<button aria-pressed="${k===cur}" data-k="${k}">${M[k].name}</button>`).join("");
+ const mx=Math.max(...D.map(d=>d[cur]));
+ $("bars").innerHTML=D.map(d=>`<div class="row"><span>${d.l}D</span><div class="tr"><div class="bar ${cls(d)}" style="width:${d[cur]/mx*100}%"></div></div><em class="num">${M[cur].f(d[cur])}</em></div>`).join("");
+}
+$("mt").addEventListener("click",e=>{const k=e.target.dataset.k;if(k){cur=k;bars();}});
+bars();
+
+let sel=bs;
+function explore(){
+ $("wl").innerHTML=D.map(d=>`<tr data-l="${d.l}" tabindex="0" class="${d===sel?"sel":""}"><td>${d.l}D</td><td class="num">${M.s.f(d.s)}</td><td class="num">${M.g.f(d.g)}</td></tr>`).join("");
+ const mult=(1+sel.c/100);
+ $("sg").innerHTML=[["LOOKBACK",sel.l+"D","am"],["SHARPE",M.s.f(sel.s),""],["CUM RETURN",M.c.f(sel.c),"up"],["CAGR",M.g.f(sel.g),"up"],["MULTIPLE",mult.toFixed(1)+"x",""],["SHARPE RANK",rank(sel,"s")+" / 5",sel===bs?"up":sel===ws?"dn":""]]
+  .map(x=>`<div><label>${x[0]}</label><b class="num ${x[2]}">${x[1]}</b></div>`).join("");
+ $("lbtable").innerHTML=Object.keys(M).map(k=>{
+  const b=best(k),diff=sel[k]-b[k],pct=(sel[k]/b[k]-1)*100;
+  return `<tr><td>${M[k].name}</td><td class="num">${M[k].f(sel[k])}</td><td class="num">${rank(sel,k)}/5</td><td class="num">${M[k].f(b[k])} (${b.l}D)</td><td class="num">${M[k].f(avg(k))}</td><td class="num ${diff<0?"dn":"up"}">${diff===0?"0.0%":pct.toFixed(1)+"%"}</td></tr>`}).join("");
+ $("lbbars").innerHTML=Object.keys(M).map(k=>{
+  const mx=Math.max(...D.map(d=>d[k]));
+  return `<div class="note">${M[k].name}</div>`+D.map(d=>`<div class="row"><span>${d.l}D</span><div class="tr"><div class="bar ${d===sel?"sel":""}" style="width:${d[k]/mx*100}%"></div></div><em class="num">${M[k].f(d[k])}</em></div>`).join("");
+ }).join("");
+ growth();
+}
+function growth(){
+ const W=700,H=280,L=52,R=14,T=10,B=24,N=60;
+ const vals=d=>Array.from({length:N+1},(_,i)=>100*Math.pow(1+d.g/100,YEARS*i/N));
+ const top=Math.ceil(Math.max(...D.map(d=>100*(1+d.c/100)))/2000)*2000;
+ const X=i=>L+(W-L-R)*i/N,Y=v=>T+(H-T-B)*(1-v/top);
+ let s=`<svg id="sv" viewBox="0 0 ${W} ${H}" role="img" aria-label="Growth of 100 at constant CAGR">`;
+ for(let k=0;k<=5;k++){const v=top*k/5;s+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#1c2026"/><text x="${L-6}" y="${Y(v)+3}" text-anchor="end">${Math.round(v).toLocaleString("en-US")}</text>`;}
+ [0,5,10,15,20].forEach(y=>{s+=`<text x="${X(y/YEARS*N)}" y="${H-8}" text-anchor="middle">${2006+y}</text>`;});
+ D.filter(d=>d!==sel).forEach(d=>{s+=`<polyline fill="none" stroke="#4a5360" stroke-width="1" points="${vals(d).map((v,i)=>X(i)+","+Y(v)).join(" ")}"/>`;});
+ s+=`<polyline fill="none" stroke="var(--am)" stroke-width="2" points="${vals(sel).map((v,i)=>X(i)+","+Y(v)).join(" ")}"/><line id="cx" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="var(--bl)" stroke-dasharray="3 3" opacity="0"/></svg>`;
+ $("growth").innerHTML=s;
+ const sv=$("sv"),cx=$("cx"),ro=$("readout");
+ ro.innerHTML=`<span class="am">${sel.l}D</span> amber, others grey. Hover the chart for values.`;
+ sv.addEventListener("mousemove",e=>{
+  const r=sv.getBoundingClientRect(),px=(e.clientX-r.left)/r.width*W;
+  const i=Math.max(0,Math.min(N,Math.round((px-L)/(W-L-R)*N)));
+  cx.setAttribute("x1",X(i));cx.setAttribute("x2",X(i));cx.setAttribute("opacity","1");
+  const yr=(2006+YEARS*i/N).toFixed(1);
+  ro.innerHTML=`<b>${yr}</b> &nbsp; `+D.map(d=>`<span class="${d===sel?"am":""}">${d.l}D ${Math.round(vals(d)[i]).toLocaleString("en-US")}</span>`).join(" &nbsp; ");
+ });
+ sv.addEventListener("mouseleave",()=>{cx.setAttribute("opacity","0");});
+}
+$("wl").addEventListener("click",e=>{const t=e.target.closest("tr[data-l]");if(t){sel=D.find(d=>d.l===+t.dataset.l);explore();}});
+$("wl").addEventListener("keydown",e=>{if(e.key==="Enter"){const t=e.target.closest("tr[data-l]");if(t){sel=D.find(d=>d.l===+t.dataset.l);explore();document.querySelector(`tr[data-l="${sel.l}"]`).focus();}}});
+explore();
+</script>
+</body>
+</html>
